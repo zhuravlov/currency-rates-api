@@ -7,12 +7,13 @@ import com.zhuravlov.currencyratesapi.service.ExchangeRatesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/currencies")
 public class CurrencyController {
 
     private final Logger log = LoggerFactory.getLogger(CurrencyController.class);
@@ -26,17 +27,18 @@ public class CurrencyController {
         this.exchangeRatesService = exchangeRatesService;
     }
 
-    @GetMapping("/currencies")
+    @GetMapping()
     public List<CurrencyDto> getCurrencies() {
         return currencyService.getObservableCurrencies();
     }
 
-    @PostMapping("/currencies")
-    public CurrencyDto addCurrency(@RequestBody CurrencyDto currency) {
-        return currencyService.addCurrency(currency);
+    @PostMapping()
+    @ResponseStatus(HttpStatus.CREATED)
+    public void addCurrency(@RequestBody CurrencyDto currency) {
+        currencyService.addCurrency(currency);
     }
 
-    @GetMapping("/rates/{baseCurrency}")
+    @GetMapping("/{baseCurrency}/rates")
     public ExchangeRatesDto getExchangeRates(@PathVariable String baseCurrency) {
         return exchangeRatesService.getExchangeRates(baseCurrency);
     }

@@ -18,11 +18,14 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.liquibase:liquibase-core'
     implementation 'org.postgresql:postgresql'
+
+    compileOnly 'org.projectlombok:lombok:1.18.34'
 
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
@@ -32,4 +35,8 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
 }

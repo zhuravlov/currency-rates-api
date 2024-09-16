@@ -28,6 +28,6 @@ public class CurrencyService {
 
     public CurrencyDto addCurrency(CurrencyDto currency) {
         //TODO
-        return null;
+        return currency;
     }
 }

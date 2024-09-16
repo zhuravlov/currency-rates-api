@@ -6,8 +6,11 @@ import java.util.Map;
 public class ExchangeRatesDto {
 
     private String base;
-    private long timestamp;
+    private Long timestamp;
     private Map<String, BigDecimal> rates;
+
+    public ExchangeRatesDto() {
+    }
 
     public ExchangeRatesDto(String base, long timestamp, Map<String, BigDecimal> rates) {
         this.base = base;
@@ -23,11 +26,11 @@ public class ExchangeRatesDto {
         this.base = base;
     }
 
-    public long getTimestamp() {
+    public Long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
     }
 
