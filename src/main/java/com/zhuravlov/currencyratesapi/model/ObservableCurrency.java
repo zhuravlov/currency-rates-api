@@ -4,7 +4,6 @@ package com.zhuravlov.currencyratesapi.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Table(name = "observable_currencies", schema = "public")
@@ -13,7 +12,6 @@ public class ObservableCurrency {
     @Id
     private Long id;
     private String currencyCode;
-    private LocalDateTime createdAt;
 
     public Long getId() {
         return id;
