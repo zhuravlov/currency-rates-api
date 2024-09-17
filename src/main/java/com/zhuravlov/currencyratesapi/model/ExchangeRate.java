@@ -17,6 +17,15 @@ public class ExchangeRate {
     private BigDecimal rate;
     private LocalDateTime tradedAt;
 
+    public ExchangeRate() {
+    }
+    public ExchangeRate(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate, LocalDateTime tradedAt) {
+        this.baseCurrencyCode = baseCurrencyCode;
+        this.targetCurrencyCode = targetCurrencyCode;
+        this.rate = rate;
+        this.tradedAt = tradedAt;
+    }
+
     public Long getId() {
         return id;
     }
