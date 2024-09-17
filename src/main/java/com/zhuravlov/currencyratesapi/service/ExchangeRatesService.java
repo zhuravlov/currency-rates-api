@@ -48,7 +48,7 @@ public class ExchangeRatesService {
         ratesDto.setTimestamp(externalRatesDto.getTimestamp());
         ratesDto.setRates(externalRatesDto.getRates());
 
-        cacheRates.put(currencyCode, new ExchangeRatesDto());
+        cacheRates.put(currencyCode, ratesDto);
 
         List<ExchangeRate> exchangeRates = mapToExchangeRate(ratesDto);
         rateRepository.saveAll(exchangeRates);
