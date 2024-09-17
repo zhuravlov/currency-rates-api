@@ -1,7 +1,7 @@
 package com.zhuravlov.currencyratesapi.service;
 
 import com.zhuravlov.currencyratesapi.dto.ExchangeRatesDto;
-import com.zhuravlov.currencyratesapi.infrastructure.ExchangeRatesDTO;
+import com.zhuravlov.currencyratesapi.infrastructure.ExternalRatesResponse;
 import com.zhuravlov.currencyratesapi.infrastructure.ExchangeRatesProvider;
 import com.zhuravlov.currencyratesapi.model.ExchangeRate;
 import com.zhuravlov.currencyratesapi.repository.ExchangeRateRepository;
@@ -43,7 +43,7 @@ public class ExchangeRatesService {
     }
 
     public void updateRates(String currencyCode) {
-        ExchangeRatesDTO externalRatesDto = exchangeRatesProvider.obtainExchangeRates(currencyCode);
+        ExternalRatesResponse externalRatesDto = exchangeRatesProvider.obtainExchangeRates(currencyCode);
 
         ExchangeRatesDto ratesDto = new ExchangeRatesDto();
         ratesDto.setBase(currencyCode);
