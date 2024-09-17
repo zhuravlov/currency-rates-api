@@ -3,6 +3,8 @@ package com.zhuravlov.currencyratesapi.service;
 import com.zhuravlov.currencyratesapi.dto.CurrencyDto;
 import com.zhuravlov.currencyratesapi.model.ObservableCurrency;
 import com.zhuravlov.currencyratesapi.repository.ObservableCurrencyRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +13,8 @@ import java.util.List;
 
 @Service
 public class CurrencyService {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ObservableCurrencyRepository observableCurrencyRepository;
     private final ExchangeRatesService exchangeRatesService;
@@ -32,6 +36,7 @@ public class CurrencyService {
         try {
             observableCurrencyRepository.save(newObservableCurrency);
         } catch (Exception e) {
+            log.error("The currency is already added.", e);
             throw new RuntimeException(String.format("Currency %s is already added", currencyDto.getCode()), e);
         }
         exchangeRatesService.updateRates(currencyDto.getCode());
