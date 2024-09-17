@@ -1,17 +1,23 @@
 package com.zhuravlov.currencyratesapi.service;
 
+import com.zhuravlov.currencyratesapi.dto.CurrencyDto;
 import com.zhuravlov.currencyratesapi.dto.ExchangeRatesDto;
 import com.zhuravlov.currencyratesapi.infrastructure.ExternalRatesResponse;
 import com.zhuravlov.currencyratesapi.infrastructure.ExchangeRatesProvider;
 import com.zhuravlov.currencyratesapi.model.ExchangeRate;
+import com.zhuravlov.currencyratesapi.model.ObservableCurrency;
 import com.zhuravlov.currencyratesapi.repository.ExchangeRateRepository;
+import com.zhuravlov.currencyratesapi.repository.ObservableCurrencyRepository;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,9 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ExchangeRatesService {
 
+    private final Logger log = LoggerFactory.getLogger(ExchangeRatesService.class);
+
     private Map<String, ExchangeRatesDto> cacheRates = new ConcurrentHashMap<>();
 
     private ExchangeRateRepository rateRepository;
+    private ObservableCurrencyRepository currencyRepository;
     private ExchangeRatesProvider exchangeRatesProvider;
 
     @Autowired
@@ -40,6 +49,14 @@ public class ExchangeRatesService {
         return exchangeRatesDto;
     }
 
+    public void updateRatesAll() {
+        Collection<ObservableCurrency> all = currencyRepository.findAll();
+        log.info("Observable currencies are {}", all);
+        for (ObservableCurrency c : all) {
+            updateRates(c.getCurrencyCode());
+        }
+    }
+
     public void updateRates(String currencyCode) {
         ExternalRatesResponse externalRatesDto = exchangeRatesProvider.obtainExchangeRates(currencyCode);
 
@@ -52,6 +69,8 @@ public class ExchangeRatesService {
 
         List<ExchangeRate> exchangeRates = mapToExchangeRate(ratesDto);
         rateRepository.saveAll(exchangeRates);
+
+        log.info("{} exchange rates were updated", currencyCode);
     }
 
     private List<ExchangeRate> mapToExchangeRate(ExchangeRatesDto ratesDto) {
