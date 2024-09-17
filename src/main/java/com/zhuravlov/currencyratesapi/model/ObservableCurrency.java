@@ -1,10 +1,10 @@
 package com.zhuravlov.currencyratesapi.model;
 
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.Objects;
+import java.util.StringJoiner;
 
 @Table(name = "observable_currencies", schema = "public")
 public class ObservableCurrency {
@@ -40,5 +40,12 @@ public class ObservableCurrency {
     @Override
     public int hashCode() {
         return Objects.hash(currencyCode);
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", "[", "]")
+                .add(currencyCode)
+                .toString();
     }
 }

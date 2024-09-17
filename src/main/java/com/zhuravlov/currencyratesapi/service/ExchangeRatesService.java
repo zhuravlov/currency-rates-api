@@ -1,6 +1,5 @@
 package com.zhuravlov.currencyratesapi.service;
 
-import com.zhuravlov.currencyratesapi.dto.CurrencyDto;
 import com.zhuravlov.currencyratesapi.dto.ExchangeRatesDto;
 import com.zhuravlov.currencyratesapi.infrastructure.ExternalRatesResponse;
 import com.zhuravlov.currencyratesapi.infrastructure.ExchangeRatesProvider;
@@ -14,13 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class ExchangeRatesService {
@@ -34,14 +32,20 @@ public class ExchangeRatesService {
     private ExchangeRatesProvider exchangeRatesProvider;
 
     @Autowired
-    public ExchangeRatesService(ExchangeRateRepository rateRepository, ExchangeRatesProvider exchangeRatesProvider) {
+    public ExchangeRatesService(ExchangeRateRepository rateRepository, ObservableCurrencyRepository currencyRepository, ExchangeRatesProvider exchangeRatesProvider) {
         this.rateRepository = rateRepository;
+        this.currencyRepository = currencyRepository;
         this.exchangeRatesProvider = exchangeRatesProvider;
     }
 
     @PostConstruct
-    public void loadRates() {
-        //TODO load rates from db
+    public void loadRatesFromDb() {
+        Collection<ObservableCurrency> all = currencyRepository.findAll();
+        log.info("Loading all observable currencies rates form db: {}", all);
+        for (ObservableCurrency cur : all) {
+            ExchangeRatesDto exchangeRatesDto = loadFromDbLatestExchangeRatesDto(cur.getCurrencyCode());
+            cacheRates.put(cur.getCurrencyCode(), exchangeRatesDto);
+        }
     }
 
     public ExchangeRatesDto getExchangeRates(String baseCurrency) {
@@ -51,7 +55,7 @@ public class ExchangeRatesService {
 
     public void updateRatesAll() {
         Collection<ObservableCurrency> all = currencyRepository.findAll();
-        log.info("Observable currencies are {}", all);
+        log.info("Updating all observable currencies rates: {}", all);
         for (ObservableCurrency c : all) {
             updateRates(c.getCurrencyCode());
         }
@@ -81,5 +85,22 @@ public class ExchangeRatesService {
                 .stream()
                 .map(e -> new ExchangeRate(base, e.getKey(), e.getValue(), dateTime))
                 .toList();
+    }
+
+    private ExchangeRatesDto loadFromDbLatestExchangeRatesDto(String currencyBase) {
+        Collection<ExchangeRate> latestRates = rateRepository.findLatestRates(currencyBase);
+        ExchangeRatesDto ratesDto = new ExchangeRatesDto();
+        ratesDto.setBase(currencyBase);
+        if (latestRates.isEmpty()) {
+            ratesDto.setTimestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
+            ratesDto.setRates(Collections.emptyMap());
+        } else {
+            Map<String, BigDecimal> ratesDtoMap = latestRates.stream().collect(
+                    Collectors.toMap(ExchangeRate::getTargetCurrencyCode, ExchangeRate::getRate));
+
+            ratesDto.setTimestamp(latestRates.iterator().next().getTradedAt().toEpochSecond(ZoneOffset.UTC));
+            ratesDto.setRates(ratesDtoMap);
+        }
+        return ratesDto;
     }
 }
