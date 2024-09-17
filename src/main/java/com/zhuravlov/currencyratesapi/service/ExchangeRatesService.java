@@ -21,13 +21,11 @@ public class ExchangeRatesService {
 
     private Map<String, ExchangeRatesDto> cacheRates = new ConcurrentHashMap<>();
 
-    private CurrencyService currencyService;
     private ExchangeRateRepository rateRepository;
     private ExchangeRatesProvider exchangeRatesProvider;
 
     @Autowired
-    public ExchangeRatesService(CurrencyService currencyService, ExchangeRateRepository rateRepository, ExchangeRatesProvider exchangeRatesProvider) {
-        this.currencyService = currencyService;
+    public ExchangeRatesService(ExchangeRateRepository rateRepository, ExchangeRatesProvider exchangeRatesProvider) {
         this.rateRepository = rateRepository;
         this.exchangeRatesProvider = exchangeRatesProvider;
     }
