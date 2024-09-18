@@ -7,10 +7,11 @@ import com.zhuravlov.currencyratesapi.model.ExchangeRate;
 import com.zhuravlov.currencyratesapi.model.ObservableCurrency;
 import com.zhuravlov.currencyratesapi.repository.ExchangeRateRepository;
 import com.zhuravlov.currencyratesapi.repository.ObservableCurrencyRepository;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,11 +26,11 @@ public class ExchangeRatesService {
 
     private final Logger log = LoggerFactory.getLogger(ExchangeRatesService.class);
 
-    private Map<String, ExchangeRatesDto> cacheRates = new ConcurrentHashMap<>();
+    private final Map<String, ExchangeRatesDto> cacheRates = new ConcurrentHashMap<>();
 
-    private ExchangeRateRepository rateRepository;
-    private ObservableCurrencyRepository currencyRepository;
-    private ExchangeRatesProvider exchangeRatesProvider;
+    private final ExchangeRateRepository rateRepository;
+    private final ObservableCurrencyRepository currencyRepository;
+    private final ExchangeRatesProvider exchangeRatesProvider;
 
     @Autowired
     public ExchangeRatesService(ExchangeRateRepository rateRepository, ObservableCurrencyRepository currencyRepository, ExchangeRatesProvider exchangeRatesProvider) {
@@ -38,7 +39,7 @@ public class ExchangeRatesService {
         this.exchangeRatesProvider = exchangeRatesProvider;
     }
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class) // loading the cache on startup application
     public void loadRatesFromDb() {
         Collection<ObservableCurrency> all = currencyRepository.findAll();
         log.info("Loading all observable currencies rates form db: {}", all);
@@ -50,6 +51,10 @@ public class ExchangeRatesService {
 
     public ExchangeRatesDto getExchangeRates(String baseCurrency) {
         ExchangeRatesDto exchangeRatesDto = cacheRates.get(baseCurrency);
+        if (exchangeRatesDto == null) {
+            exchangeRatesDto = loadFromDbLatestExchangeRatesDto(baseCurrency);
+            cacheRates.put(baseCurrency, exchangeRatesDto);
+        }
         return exchangeRatesDto;
     }
 
@@ -80,7 +85,6 @@ public class ExchangeRatesService {
     private List<ExchangeRate> mapToExchangeRate(ExchangeRatesDto ratesDto) {
         LocalDateTime dateTime = LocalDateTime.ofEpochSecond(ratesDto.getTimestamp(), 0, ZoneOffset.UTC);
         String base = ratesDto.getBase();
-        List<ExchangeRate> result = new ArrayList<>();
         return ratesDto.getRates().entrySet()
                 .stream()
                 .map(e -> new ExchangeRate(base, e.getKey(), e.getValue(), dateTime))
