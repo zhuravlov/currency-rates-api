@@ -8,11 +8,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.relational.core.conversion.DbActionExecutionException;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +49,7 @@ class CurrencyServiceTest {
     }
 
     @Test
-    void addCurrency() {
+    void addCurrencyNew() {
         ObservableCurrency currencyUsd = new ObservableCurrency();
         currencyUsd.setId(1L);
         currencyUsd.setCurrencyCode("USD");
@@ -58,5 +60,22 @@ class CurrencyServiceTest {
         currencyService.addCurrency(currencyUsdDto);
         verify(currencyRepository, times(1)).save(currencyUsd);
         verify(exchangeRatesService, times(1)).updateRates(currencyUsd.getCurrencyCode());
+    }
+
+    @Test
+    void addCurrencyIfAlreadyExist() {
+        ObservableCurrency currencyUsd = new ObservableCurrency();
+        currencyUsd.setCurrencyCode("USD");
+
+        when(currencyRepository.save(currencyUsd)).thenThrow(new RuntimeException(new DuplicateKeyException("some message")));
+
+        RuntimeException thrown = assertThrows(
+                RuntimeException.class,
+                () -> currencyService.addCurrency(new CurrencyDto(currencyUsd.getCurrencyCode()))
+        );
+
+        assertTrue(thrown.getMessage().contains("is already added"));
+        verify(currencyRepository, times(1)).save(currencyUsd);
+        verify(exchangeRatesService, times(0)).updateRates(currencyUsd.getCurrencyCode());
     }
 }

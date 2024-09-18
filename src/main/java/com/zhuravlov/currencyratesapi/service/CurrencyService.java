@@ -6,6 +6,7 @@ import com.zhuravlov.currencyratesapi.repository.ObservableCurrencyRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -36,8 +37,11 @@ public class CurrencyService {
         try {
             observableCurrencyRepository.save(newObservableCurrency);
         } catch (Exception e) {
-            log.error("The currency is already added.", e);
-            throw new RuntimeException(String.format("Currency %s is already added", currencyDto.getCode()), e);
+            if (e.getCause() instanceof DuplicateKeyException) {
+                log.error("The currency is already added.", e);
+                throw new RuntimeException(String.format("Currency %s is already added", currencyDto.getCode()), e);
+            }
+            throw e;
         }
         exchangeRatesService.updateRates(currencyDto.getCode());
         return currencyDto;
