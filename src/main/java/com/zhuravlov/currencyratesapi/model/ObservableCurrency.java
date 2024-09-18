@@ -13,6 +13,13 @@ public class ObservableCurrency {
     private Long id;
     private String currencyCode;
 
+    public ObservableCurrency() {
+    }
+
+    public ObservableCurrency(String currencyCode) {
+        this.currencyCode = currencyCode;
+    }
+
     public Long getId() {
         return id;
     }
